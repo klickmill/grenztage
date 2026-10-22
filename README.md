@@ -18,7 +18,7 @@ Die Einträge bleiben im Browser auf dem eigenen Gerät (localStorage). Nach au�
 
 ## Selbst betreiben
 
-Alle Dateien in einen Ordner auf einen Webserver legen, fertig. Der Zähler ruft nur dann klickmill.app, wenn die Seite von dort geladen wurde; lokal geöffnete Kopien zählen nicht.
+Alle Dateien in einen Ordner auf einen Webserver legen, fertig. Achtung: Zähler und Feedback gehen auch aus selbst betriebenen Kopien an klickmill.app. Nur lokal geöffnete Kopien (localhost, 127.0.0.1, Datei) rufen nichts auf. Für den eigenen Betrieb `BASIS` in `index.html` auf die eigene Adresse ändern oder den Zähler in der App abschalten.
 
 ## Quellcode und Lizenz
 
