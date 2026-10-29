@@ -50,6 +50,10 @@
   .seite { max-width: 560px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 16px; }
   .kopf { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0; }
   .marke { margin: 0; font-size: 1.25rem; font-weight: 750; letter-spacing: -0.01em; }
+  /* Erster Bildschirm nach dem Muster von Klartext: Alltagsfrage groß, ein Hauptknopf in voller Breite, mehr Luft. */
+  .frage { margin: 0 0 14px; font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+  .einstieg p { line-height: 1.5; margin: 0 0 10px; }
+  .knopf.breit { display: block; width: 100%; min-height: 52px; }
   .unterzeile { margin: 2px 0 0; font-size: 0.85rem; color: var(--leise); }
   .karte { background: var(--card); border: 1px solid var(--rand); border-radius: var(--r-karte); box-shadow: var(--schatten); padding: 18px; }
   h2 { margin: 0 0 12px; font-size: 1.05rem; font-weight: 700; }
@@ -152,11 +156,13 @@
     </div>
   </header>
 
-  <div class="leise" style="display:grid;gap:8px">
-    <p style="margin:0"><strong>Das Problem:</strong> Pendelst du zwischen Ländern oder reist du viel? Dann musst du manchmal wissen, an wie vielen Tagen du in welchem Land warst. Im Kopf behält das kaum jemand.</p>
-    <p style="margin:0"><strong>Die Lösung:</strong> Du trägst für jeden Tag ein, in welchem Land du warst und wie: im Büro, im Homeoffice, auf Reise oder frei. Grenztage zählt die Tage je Land und Monat. Unter „Grenzen“ legst du selbst fest, wie viele Tage es höchstens sein sollen, zum Beispiel in einem bestimmten Land. Dann siehst du, wie viele noch bleiben. Grenztage zählt nur, berät nicht und ist kein amtlicher Nachweis.</p>
-    <p style="margin:0"><strong>Zuerst:</strong> Tipp im Kalender einen Tag an.</p>
-  </div>
+  <section class="karte einstieg" id="einstieg" aria-labelledby="g-frage">
+    <h2 class="frage" id="g-frage">An wie vielen Tagen warst du wo?</h2>
+    <p><strong>Das Problem:</strong> Pendelst du zwischen Ländern oder reist du viel? Dann musst du manchmal wissen, an wie vielen Tagen du in welchem Land warst. Im Kopf behält das kaum jemand.</p>
+    <p><strong>Die Lösung:</strong> Du trägst für jeden Tag ein, in welchem Land du warst und wie: im Büro, im Homeoffice, auf Reise oder frei. Grenztage zählt die Tage je Land und Monat. Unter „Grenzen“ legst du selbst fest, wie viele Tage es höchstens sein sollen, zum Beispiel in einem bestimmten Land. Dann siehst du, wie viele noch bleiben. Grenztage zählt nur, berät nicht und ist kein amtlicher Nachweis.</p>
+    <p><strong>Zuerst:</strong> Tipp im Kalender einen Tag an.</p>
+    <button class="knopf haupt breit" type="button" id="einstieg-heute">Heute im Kalender eintragen</button>
+  </section>
 
   <div class="reiter" role="tablist" aria-label="Ansicht">
     <button type="button" role="tab" id="tab-kalender" aria-controls="teil-kalender" aria-selected="true">Kalender</button>
@@ -300,7 +306,7 @@
       <input type="checkbox" id="zaehler-aus">
       <span>Zähler abschalten. Dann meldet dieser Browser keine App-Starts und Knöpfe mehr.</span>
     </label>
-    <p class="leise" style="margin-top:10px">Version 1.1 vom 26.10.2026 · <a href="aenderungen.html">Was sich geändert hat</a> · <a href="https://github.com/klickmill/grenztage" target="_blank" rel="noopener noreferrer">Quellcode (für Entwickler)</a></p>
+    <p class="leise" style="margin-top:10px">Version 1.2 vom 29.10.2026 · <a href="aenderungen.html">Was sich geändert hat</a> · <a href="https://github.com/klickmill/grenztage" target="_blank" rel="noopener noreferrer">Quellcode (für Entwickler)</a></p>
   </section>
   <footer class="fuss">
     <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
@@ -334,14 +340,29 @@
   var BASIS = "https://klickmill.app";
   // Zähler-Schalter: liegt nur in diesem Browser, wird vor jedem Ping gelesen.
   var ZAEHLER_AUS = "grenztage-zaehler-aus";
-  function zaehlerAus() {
+  // Gespeicherte Wahl, gilt ab dem nächsten Start.
+  function zaehlerGespeichertAus() {
     try { return localStorage.getItem(ZAEHLER_AUS) === "1"; } catch (e) { return false; }
+  }
+  // In der laufenden Sitzung zählt das Kästchen selbst: lässt der Browser kein Speichern zu,
+  // bleibt der Zähler trotzdem aus, solange die Seite offen ist.
+  function zaehlerAus() {
+    var box = document.getElementById("zaehler-aus");
+    return box ? box.checked : zaehlerGespeichertAus();
   }
   (function () {
     var box = document.getElementById("zaehler-aus");
-    box.checked = zaehlerAus();
+    if (!box) return;
+    var text = box.nextElementSibling, normal = text ? text.textContent : "";
+    box.checked = zaehlerGespeichertAus();
     box.addEventListener("change", function () {
-      try { localStorage.setItem(ZAEHLER_AUS, box.checked ? "1" : "0"); } catch (e) {}
+      var geklappt = true;
+      try {
+        if (box.checked) localStorage.setItem(ZAEHLER_AUS, "1"); else localStorage.removeItem(ZAEHLER_AUS);
+      } catch (e) { geklappt = false; }
+      if (text) text.textContent = !geklappt && box.checked
+        ? "Zähler aus, aber nur, bis du die Seite schließt. Dein Browser lässt das Speichern nicht zu."
+        : normal;
     });
   })();
   function ping(ev) {
@@ -461,6 +482,8 @@
   }
   $("monat-zurueck").addEventListener("click", function () { monatWechseln(-1); });
   $("monat-vor").addEventListener("click", function () { monatWechseln(1); });
+  // Hauptknopf der Einstiegskarte: wie „Heute“ unter dem Kalender, nur oben im ersten Bildschirm.
+  $("einstieg-heute").addEventListener("click", function () { zeigeTeil("kalender"); $("heute-knopf").click(); });
   $("heute-knopf").addEventListener("click", function () { ansicht = { j: +heute.slice(0, 4), m: +heute.slice(5, 7) }; oeffneEditor(heute, heute); });
   $("zeitraum-knopf").addEventListener("click", function () { oeffneEditor(heute, heute); $("e-von").focus(); });
 
@@ -654,7 +677,8 @@
     });
   }
 
-  function render() { renderKalender(); if (!$("teil-grenzen").hidden) renderGrenzen(); }
+  // Die Einstiegskarte nur, solange noch kein Tag eingetragen ist; danach steht der Kalender oben.
+  function render() { $("einstieg").hidden = Object.keys(daten.tage).length > 0; renderKalender(); if (!$("teil-grenzen").hidden) renderGrenzen(); }
 
   // Tabelle
   function herunterladen(inhalt, name, typ) {
@@ -701,7 +725,8 @@
     if (!confirm("Alle Tage, Grenzen und zuletzt benutzten Länder auf diesem Gerät löschen? Das lässt sich nicht rückgängig machen. Sichere vorher eine Tabelle, wenn du sie noch brauchst.")) return;
     try { localStorage.removeItem(SPEICHER); } catch (e) {}
     try { localStorage.removeItem(ZAEHLER_AUS); } catch (e) {}
-    $("zaehler-aus").checked = false;
+    $("zaehler-aus").checked = zaehlerGespeichertAus();
+    $("zaehler-aus").dispatchEvent(new Event("change")); // setzt auch den Satz daneben zurück
     daten = laden(); grenzFormLeeren(); schliesseEditor(); render(); zeigeHinweis("Alles gelöscht.");
   });
 
@@ -739,7 +764,7 @@
   // das ältere Fenster beim nächsten Eintrag die Tage aus dem anderen.
   window.addEventListener("storage", function (e) {
     if (e.key === SPEICHER || e.key === null) { daten = laden(); render(); }
-    if (e.key === ZAEHLER_AUS || e.key === null) $("zaehler-aus").checked = zaehlerAus();
+    if (e.key === ZAEHLER_AUS || e.key === null) $("zaehler-aus").checked = zaehlerGespeichertAus();
   });
 
   // Nach Mitternacht oder beim Zurückkehren in die App: heute neu bestimmen.
